@@ -2,7 +2,7 @@ name: iOS Build
 
 on:
   push:
-    branches: [main]
+    branches: [master, main]
   workflow_dispatch:
 
 jobs:
@@ -23,29 +23,17 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Setup Expo
-        uses: expo/expo-github-action@v8
-        with:
-          expo-version: latest
-          eas-version: latest
-          token: ${{ secrets.EXPO_TOKEN }}
+      - name: Install Expo CLI
+        run: npm install -g expo-cli@latest @expo/cli@latest
 
       - name: Prebuild iOS
         run: npx expo prebuild --platform ios --clean
-
-      - name: Setup CocoaPods cache
-        uses: actions/cache@v4
-        with:
-          path: ios/Pods
-          key: ${{ runner.os }}-pods-${{ hashFiles('ios/Podfile.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-pods-
 
       - name: Install CocoaPods
         working-directory: ios
         run: pod install
 
-      - name: Build iOS (unsigned IPA)
+      - name: Build iOS Archive (unsigned)
         working-directory: ios
         run: |
           xcodebuild \
@@ -58,41 +46,20 @@ jobs:
             archive \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO
+            CODE_SIGNING_ALLOWED=NO \
+            -quiet
 
-      - name: Create unsigned IPA
+      - name: Create IPA
         run: |
           mkdir -p build/Payload
           cp -r build/KelimeAvi.xcarchive/Products/Applications/KelimeAvi.app build/Payload/
           cd build
           zip -r KelimeAvi-unsigned.ipa Payload
-          ls -la KelimeAvi-unsigned.ipa
+          echo "IPA size: $(du -h KelimeAvi-unsigned.ipa | cut -f1)"
 
-      - name: Upload IPA artifact
+      - name: Upload IPA
         uses: actions/upload-artifact@v4
         with:
-          name: KelimeAvi-iOS
+          name: KelimeAvi-iOS-IPA
           path: build/KelimeAvi-unsigned.ipa
-          retention-days: 30
-
-      - name: Build iOS Simulator
-        working-directory: ios
-        run: |
-          xcodebuild \
-            -workspace KelimeAvi.xcworkspace \
-            -scheme KelimeAvi \
-            -configuration Release \
-            -sdk iphonesimulator \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
-            -derivedDataPath ${{ github.workspace }}/build/simulator \
-            build \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO
-
-      - name: Upload Simulator Build
-        uses: actions/upload-artifact@v4
-        with:
-          name: KelimeAvi-iOS-Simulator
-          path: build/simulator/Build/Products/Release-iphonesimulator/KelimeAvi.app
-          retention-days: 30
+          retention-days: 90
