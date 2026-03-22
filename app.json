@@ -1,0 +1,46 @@
+{
+  "expo": {
+    "name": "Kelime Avı",
+    "slug": "kelime-avi",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0F0F2D"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.kelimeavi.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png",
+        "backgroundColor": "#0F0F2D"
+      },
+      "package": "com.kelimeavi.app",
+      "versionCode": 1,
+      "permissions": [],
+      "blockedPermissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.CAMERA",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [],
+    "extra": {
+      "eas": {
+        "projectId": "b441270d-fe94-44d4-8259-1c7c48476733"
+      }
+    },
+    "owner": "backstagetech"
+  }
+}
