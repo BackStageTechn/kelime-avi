@@ -24,10 +24,19 @@ jobs:
         run: npm ci
 
       - name: Install Expo CLI
-        run: npm install -g expo-cli@latest @expo/cli@latest
+        run: npm install -g @expo/cli@latest
 
       - name: Prebuild iOS
         run: npx expo prebuild --platform ios --clean
+
+      - name: Find workspace name
+        id: workspace
+        run: |
+          WORKSPACE=$(find ios -name "*.xcworkspace" -maxdepth 1 | head -1)
+          SCHEME=$(basename "$WORKSPACE" .xcworkspace)
+          echo "workspace=$WORKSPACE" >> $GITHUB_OUTPUT
+          echo "scheme=$SCHEME" >> $GITHUB_OUTPUT
+          echo "Found workspace: $WORKSPACE, scheme: $SCHEME"
 
       - name: Install CocoaPods
         working-directory: ios
@@ -36,9 +45,10 @@ jobs:
       - name: Build iOS Archive (unsigned)
         working-directory: ios
         run: |
+          WORKSPACE_NAME=$(basename "${{ steps.workspace.outputs.workspace }}")
           xcodebuild \
-            -workspace KelimeAvi.xcworkspace \
-            -scheme KelimeAvi \
+            -workspace "$WORKSPACE_NAME" \
+            -scheme "${{ steps.workspace.outputs.scheme }}" \
             -configuration Release \
             -sdk iphoneos \
             -destination 'generic/platform=iOS' \
@@ -52,7 +62,7 @@ jobs:
       - name: Create IPA
         run: |
           mkdir -p build/Payload
-          cp -r build/KelimeAvi.xcarchive/Products/Applications/KelimeAvi.app build/Payload/
+          cp -r build/KelimeAvi.xcarchive/Products/Applications/*.app build/Payload/
           cd build
           zip -r KelimeAvi-unsigned.ipa Payload
           echo "IPA size: $(du -h KelimeAvi-unsigned.ipa | cut -f1)"
